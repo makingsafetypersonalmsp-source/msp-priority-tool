@@ -3,91 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Priority Reflection Activity</title>
+  <title>MSP™ Reflection Activity</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", sans-serif;
       margin: 2rem;
-      background: #f9f9f9;
+      background: #f5f9f6;
+      color: #2c3e50;
     }
+
     h2 {
-      color: #333;
+      color: #1e6e43;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
     }
+
+    p {
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
     label {
-      font-weight: bold;
+      font-weight: 600;
       margin-top: 1rem;
       display: block;
     }
+
     input[type="text"] {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.6rem;
       margin-bottom: 1rem;
       font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
+
     button {
-      background-color: #007BFF;
+      background-color: #1e6e43;
       color: white;
       padding: 0.6rem 1.2rem;
       border: none;
       cursor: pointer;
       font-size: 1rem;
-      border-radius: 4px;
+      border-radius: 6px;
+      margin-top: 1rem;
+      margin-right: 1rem;
     }
+
     #reorder-container {
       margin-top: 2rem;
     }
+
     .draggable {
       padding: 1rem;
-      background-color: #ffffff;
-      border: 1px solid #ccc;
-      margin-bottom: 0.5rem;
+      background-color: #e2f3eb;
+      border: 2px solid #a8d5ba;
+      margin-bottom: 1rem;
       cursor: move;
-      border-radius: 4px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
     }
+
+    .rank-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #2e8b57;
+      color: white;
+      text-align: center;
+      line-height: 32px;
+      font-weight: bold;
+      margin-right: 1rem;
+      flex-shrink: 0;
+    }
+
     .draggable.over {
-      border: 2px dashed #007BFF;
+      border: 2px dashed #1e6e43;
+    }
+
+    #final-output {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #dff0e8;
+      border-left: 6px solid #1e6e43;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
 
-  <h2>What Are the 3 Most Important Things in Your Life?</h2>
-  <p>Type your three biggest priorities below. Then you’ll be asked to rank them.</p>
-
-  <form id="input-form">
-    <label for="input1">Item 1:</label>
-    <input type="text" id="input1" required />
-    <label for="input2">Item 2:</label>
-    <input type="text" id="input2" required />
-    <label for="input3">Item 3:</label>
-    <input type="text" id="input3" required />
-    <button type="submit">Continue to Reorder</button>
-  </form>
+  <div id="input-page">
+    <h2>What are the 3 most important things in your life?</h2>
+    <p>Please enter your top three priorities. These might include people, goals, values, or personal dreams.</p>
+    <form id="input-form">
+      <label for="input1">Item 1:</label>
+      <input type="text" id="input1" required />
+      <label for="input2">Item 2:</label>
+      <input type="text" id="input2" required />
+      <label for="input3">Item 3:</label>
+      <input type="text" id="input3" required />
+      <button type="submit">Continue to Ranking</button>
+      <button type="button" onclick="resetInputs()">Reset</button>
+    </form>
+  </div>
 
   <div id="reorder-container" style="display:none;">
-    <h2>Now Rank Them in Order of Priority</h2>
-    <p>Drag and drop the items below to reorder them.</p>
+    <h2>Now rank them in order of importance</h2>
+    <p>Drag and drop your items so the most important is first.</p>
     <div id="draggable-list"></div>
-    <button onclick="submitRanking()">Finish</button>
-    <div id="final-output" style="margin-top: 1rem; font-weight: bold;"></div>
+    <button onclick="submitRanking()">Submit</button>
+    <button onclick="goBack()">Back to Edit</button>
+    <div id="final-output"></div>
   </div>
 
   <script>
-    const form = document.getElementById('input-form');
+    const inputForm = document.getElementById('input-form');
+    const inputPage = document.getElementById('input-page');
     const reorderContainer = document.getElementById('reorder-container');
     const draggableList = document.getElementById('draggable-list');
     const finalOutput = document.getElementById('final-output');
 
     let items = [];
 
-    form.addEventListener('submit', function(e) {
+    inputForm.addEventListener('submit', function(e) {
       e.preventDefault();
       items = [
-        document.getElementById('input1').value,
-        document.getElementById('input2').value,
-        document.getElementById('input3').value,
+        document.getElementById('input1').value.trim(),
+        document.getElementById('input2').value.trim(),
+        document.getElementById('input3').value.trim(),
       ];
-      form.style.display = 'none';
+      inputPage.style.display = 'none';
       reorderContainer.style.display = 'block';
       renderDraggableList();
     });
@@ -98,8 +146,14 @@
         const div = document.createElement('div');
         div.className = 'draggable';
         div.draggable = true;
-        div.textContent = item;
         div.dataset.index = index;
+
+        const circle = document.createElement('div');
+        circle.className = 'rank-circle';
+        circle.textContent = index + 1;
+
+        div.appendChild(circle);
+        div.appendChild(document.createTextNode(item));
         draggableList.appendChild(div);
       });
       initDragEvents();
@@ -112,7 +166,6 @@
         el.addEventListener('dragstart', (e) => {
           dragged = el;
           e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/html", el.innerHTML);
         });
 
         el.addEventListener('dragover', (e) => {
@@ -143,13 +196,25 @@
 
     function submitRanking() {
       finalOutput.innerHTML = `
-        Your Final Ranking:<br>
-        1. ${items[0]}<br>
-        2. ${items[1]}<br>
-        3. ${items[2]}
+        <h3>Your Final Ranking:</h3>
+        <ol>
+          <li><strong>${items[0]}</strong></li>
+          <li><strong>${items[1]}</strong></li>
+          <li><strong>${items[2]}</strong></li>
+        </ol>
+        <p>Thank you for reflecting. This order reflects your current priorities — use it to guide safer choices in your daily life.</p>
       `;
-      // Optional: store in localStorage or send to backend
-      console.log('Final order:', items);
+    }
+
+    function goBack() {
+      reorderContainer.style.display = 'none';
+      inputPage.style.display = 'block';
+    }
+
+    function resetInputs() {
+      document.getElementById('input1').value = '';
+      document.getElementById('input2').value = '';
+      document.getElementById('input3').value = '';
     }
   </script>
 
