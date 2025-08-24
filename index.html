@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Priority Reflection Activity</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #f9f9f9;
+    }
+    h2 {
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 1rem;
+      display: block;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      border-radius: 4px;
+    }
+    #reorder-container {
+      margin-top: 2rem;
+    }
+    .draggable {
+      padding: 1rem;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      margin-bottom: 0.5rem;
+      cursor: move;
+      border-radius: 4px;
+    }
+    .draggable.over {
+      border: 2px dashed #007BFF;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>What Are the 3 Most Important Things in Your Life?</h2>
+  <p>Type your three biggest priorities below. Then you’ll be asked to rank them.</p>
+
+  <form id="input-form">
+    <label for="input1">Item 1:</label>
+    <input type="text" id="input1" required />
+    <label for="input2">Item 2:</label>
+    <input type="text" id="input2" required />
+    <label for="input3">Item 3:</label>
+    <input type="text" id="input3" required />
+    <button type="submit">Continue to Reorder</button>
+  </form>
+
+  <div id="reorder-container" style="display:none;">
+    <h2>Now Rank Them in Order of Priority</h2>
+    <p>Drag and drop the items below to reorder them.</p>
+    <div id="draggable-list"></div>
+    <button onclick="submitRanking()">Finish</button>
+    <div id="final-output" style="margin-top: 1rem; font-weight: bold;"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('input-form');
+    const reorderContainer = document.getElementById('reorder-container');
+    const draggableList = document.getElementById('draggable-list');
+    const finalOutput = document.getElementById('final-output');
+
+    let items = [];
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      items = [
+        document.getElementById('input1').value,
+        document.getElementById('input2').value,
+        document.getElementById('input3').value,
+      ];
+      form.style.display = 'none';
+      reorderContainer.style.display = 'block';
+      renderDraggableList();
+    });
+
+    function renderDraggableList() {
+      draggableList.innerHTML = '';
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'draggable';
+        div.draggable = true;
+        div.textContent = item;
+        div.dataset.index = index;
+        draggableList.appendChild(div);
+      });
+      initDragEvents();
+    }
+
+    function initDragEvents() {
+      let dragged;
+
+      document.querySelectorAll('.draggable').forEach(el => {
+        el.addEventListener('dragstart', (e) => {
+          dragged = el;
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/html", el.innerHTML);
+        });
+
+        el.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          el.classList.add('over');
+        });
+
+        el.addEventListener('dragleave', () => {
+          el.classList.remove('over');
+        });
+
+        el.addEventListener('drop', (e) => {
+          e.stopPropagation();
+          if (dragged !== el) {
+            const fromIndex = [...draggableList.children].indexOf(dragged);
+            const toIndex = [...draggableList.children].indexOf(el);
+            items.splice(toIndex, 0, items.splice(fromIndex, 1)[0]);
+            renderDraggableList();
+          }
+          return false;
+        });
+
+        el.addEventListener('dragend', () => {
+          document.querySelectorAll('.draggable').forEach(item => item.classList.remove('over'));
+        });
+      });
+    }
+
+    function submitRanking() {
+      finalOutput.innerHTML = `
+        Your Final Ranking:<br>
+        1. ${items[0]}<br>
+        2. ${items[1]}<br>
+        3. ${items[2]}
+      `;
+      // Optional: store in localStorage or send to backend
+      console.log('Final order:', items);
+    }
+  </script>
+
+</body>
+</html>
